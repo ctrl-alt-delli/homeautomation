@@ -3,7 +3,9 @@
 //##                                                                                                              ##
 //##################################################################################################################
 
- 
+#include <SPI.h>
+#include "Adafruit_GFX.h"
+#include "Adafruit_ILI9341.h"
 
 // IMPORT ALL REQUIRED LIBRARIES
 #include <rom/rtc.h>
@@ -31,13 +33,28 @@
 #ifndef ARDUINO_H
 #include <Arduino.h>
 #endif 
- 
+
+#include <ArduinoJson.h>
 
 
 // DEFINE VARIABLES
 
+uint8_t currentDigit = 1; // Keeps track of the current digit being modified by the potentiometer
+uint8_t digi1, digi2, digi3, digi4;
+bool lockState = false;
 
+#define TFT_DC    17
+#define TFT_CS    5
+#define TFT_RST   16
+#define TFT_CLK   18
+#define TFT_MOSI  23
+#define TFT_MISO  19
+#define BTN_1 12
+#define BTN_2 13
+#define BTN_3 14
+#define pot 35
 
+Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC, TFT_MOSI, TFT_CLK, TFT_RST, TFT_MISO);
 
 // IMPORT FONTS FOR TFT DISPLAY
 #include <Fonts/FreeSansBold18pt7b.h>
@@ -53,8 +70,10 @@ static const char* mqtt_server   = "broker.emqx.io";         // Broker IP addres
 static uint16_t mqtt_port        = 1883;
 
 // WIFI CREDENTIALS
-const char* ssid       = "YOUR_SSID"; // Add your Wi-Fi ssid
-const char* password   = "YOUR_PASS"; // Add your Wi-Fi password 
+#define ssid        "MonaConnect"      // "REPLACE WITH YOUR WIFI's SSID"   
+#define password    ""  // "REPLACE WITH YOUR WiFi's PASSWORD" 
+//#define ssid        "Digicel_WiFi_eSEb"      // "REPLACE WITH YOUR WIFI's SSID"   
+//#define password    "WYPx3kCk"  // "REPLACE WITH YOUR WiFi's PASSWORD" 
 
 
 
@@ -108,7 +127,18 @@ void showLockState(void);
 
 void setup() {
     Serial.begin(115200);  // INIT SERIAL  
- 
+
+    pinMode(BTN_1,INPUT_PULLUP);
+    pinMode(BTN_2,INPUT_PULLUP);
+    pinMode(BTN_3,INPUT_PULLUP);
+
+    tft.begin();
+    tft.fillScreen(ILI9341_WHITE);
+    tft.setFont(&FreeSansBold18pt7b);
+    digit1(0);
+    digit2(0);
+    digit3(0);
+    digit4(0);
   
     
   // CONFIGURE THE ARDUINO PINS OF THE 7SEG AS OUTPUT
@@ -124,8 +154,36 @@ void setup() {
 
 void loop() {
   // put your main code here, to run repeatedly: 
+  int potValue = analogRead(pot);  // Read ADC value (0-4095)
+  Serial.println("Potentiometer Value: ");
+  Serial.println(potValue);
+  int mappedValue = potValue / 455;  // Map to 0-9 using integer division
+  Serial.println("/nNumber: ");
+  Serial.println(mappedValue);
+  Serial.println("/nCurrent Digit: ");
+  Serial.println(currentDigit);
 
- 
+  // First IF statement must exist
+  if (currentDigit == 1) {  
+    digi1 = mappedValue;
+    digit1(digi1);
+    //Serial.println(digi1);
+  }  
+  else if (currentDigit == 2) {  
+    digi2 = mappedValue;
+    digit2(digi2);
+    //Serial.println(digi2);
+  }  
+  else if (currentDigit == 3) {  
+    digi3 = mappedValue;
+    digit3(digi3);
+    //Serial.println(digi3);
+  }  
+  else if (currentDigit == 4) {  
+    digi4 = mappedValue;
+    digit4(digi4);
+    Serial.println(digi4);
+  }  
 
   vTaskDelay(1000 / portTICK_PERIOD_MS);  
 }
@@ -144,10 +202,23 @@ void vButtonCheck( void * pvParameters )  {
         // then execute appropriate function if a button is pressed  
 
         // 1. Implement button1  functionality
+        if (digitalRead(BTN_1) == LOW) {  // Button is pressed (since it's using the pull-up resistor)
+        currentDigit = (currentDigit % 4) + 1;
+        }
+        delay(100);
 
         // 2. Implement button2  functionality
+        if (digitalRead(BTN_2) == LOW) {  // Button is pressed (since it's using the pull-up resistor)
+        checkPasscode();
+        }
+        delay(100);
 
         // 3. Implement button3  functionality
+        if (digitalRead(BTN_3) == LOW) {  // Button is pressed (since it's using the pull-up resistor)
+        lockState = false;
+        showLockState();
+        }
+        delay(100);
        
         vTaskDelay(200 / portTICK_PERIOD_MS);  
     }
@@ -212,44 +283,37 @@ bool publish(const char *topic, const char *payload){
 //***** Complete the util functions below ******
   
 void digit1(uint8_t number){
-  // CREATE BOX AND WRITE NUMBER IN THE BOX FOR THE FIRST DIGIT
-  // 1. Set font to FreeSansBold18pt7b 
-  // 2. Draw a filled rounded rectangle close to the bottom of the screen. Give it any colour you like 
-  // 3. Set cursor to the appropriate coordinates in order to write the number in the middle of the box 
-  // 4. Set the text colour of the number. Use any colour you like 
-  // 5. Set font size to one 
-  // 6. Print number to the screen 
+  tft.fillRoundRect(5, 260, 50, 50, 5, ILI9341_MAGENTA);  
+  tft.setTextColor(ILI9341_WHITE, ILI9341_MAGENTA);
+  tft.setCursor(10, 305); // Centering text
+  tft.setTextSize(2);
+  tft.print(number); 
 }
- 
+
 void digit2(uint8_t number){
-  // CREATE BOX AND WRITE NUMBER IN THE BOX FOR THE SECOND DIGIT
-  // 1. Set font to FreeSansBold18pt7b 
-  // 2. Draw a filled rounded rectangle close to the bottom of the screen. Give it any colour you like 
-  // 3. Set cursor to the appropriate coordinates in order to write the number in the middle of the box 
-  // 4. Set the text colour of the number. Use any colour you like 
-  // 5. Set font size to one 
-  // 6. Print number to the screen 
+  tft.fillRoundRect(65, 260, 50, 50, 5, ILI9341_MAGENTA);  
+  tft.setTextColor(ILI9341_WHITE, ILI9341_MAGENTA);  
+  tft.setCursor(70, 305); // Centering text
+  tft.setTextSize(2);
+  tft.print(number); 
 }
 
 void digit3(uint8_t number){
-  // CREATE BOX AND WRITE NUMBER IN THE BOX FOR THE THIRD DIGIT
-  // 1. Set font to FreeSansBold18pt7b 
-  // 2. Draw a filled rounded rectangle close to the bottom of the screen. Give it any colour you like 
-  // 3. Set cursor to the appropriate coordinates in order to write the number in the middle of the box 
-  // 4. Set the text colour of the number. Use any colour you like 
-  // 5. Set font size to one 
-  // 6. Print number to the screen 
+  tft.fillRoundRect(125, 260, 50, 50, 5, ILI9341_MAGENTA);
+  tft.setTextColor(ILI9341_WHITE, ILI9341_MAGENTA);
+  tft.setCursor(130, 305); // Centering text
+  tft.setTextSize(2);
+  tft.print(number); 
 }
 
 void digit4(uint8_t number){
-  // CREATE BOX AND WRITE NUMBER IN THE BOX FOR THE FOURTH DIGIT
-  // 1. Set font to FreeSansBold18pt7b 
-  // 2. Draw a filled rounded rectangle close to the bottom of the screen. Give it any colour you like 
-  // 3. Set cursor to the appropriate coordinates in order to write the number in the middle of the box 
-  // 4. Set the text colour of the number. Use any colour you like 
-  // 5. Set font size to one 
-  // 6. Print number to the screen 
+  tft.fillRoundRect(185, 260, 50, 50, 5, ILI9341_MAGENTA);
+  tft.setTextColor(ILI9341_WHITE, ILI9341_MAGENTA);
+  tft.setCursor(190, 305); // Centering text
+  tft.setTextSize(2);
+  tft.print(number); 
 }
+
  
  
 void checkPasscode(void){
@@ -267,7 +331,8 @@ void checkPasscode(void){
       char message[20];  // Store the 4 digit passcode that will be sent to the backend for validation via HTTP POST
       
       // 2. Insert all four (4) digits of the passcode into a string with 'passcode=1234' format and then save this modified string in the message[20] variable created above 
-       
+        snprintf(message, sizeof(message), "passcode=%d%d%d%d", digi1, digi2, digi3, digi4);
+
                       
       int httpResponseCode = http.POST(message);  // Send HTTP POST request and then wait for a response
 
@@ -277,12 +342,28 @@ void checkPasscode(void){
         String received = http.getString();
        
         // 3. CONVERT 'received' TO JSON. 
-        
+         JsonDocument doc;
+        DeserializationError error = deserializeJson(doc, received);  
+
+        if (error) {
+        Serial.print("deserializeJson() failed: ");
+        Serial.println(error.c_str());
+        return;
+        }
 
         // 4. PROCESS MESSAGE. The response from the route that is used to validate the passcode
         // will be either {"status":"complete","data":"complete"}  or {"status":"failed","data":"failed"} schema.
         // (1) if the status is complete, set the lockState variable to true, then invoke the showLockState function
         // (2) otherwise, set the lockState variable to false, then invoke the showLockState function
+        const char* status = doc["status"];  // Use default if key is missing
+
+        if (status == "complete") {
+          lockState = true;
+        } else {
+          lockState = false;
+        }
+
+        showLockState(); 
               
       }     
         

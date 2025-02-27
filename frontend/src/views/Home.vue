@@ -2,7 +2,7 @@
   
   <VContainer class="fill-height ">
     <VResponsive class="align-center text-center fill-height">
-      <VImg height="350" class="mb-5" src="@/assets/logo.svg" />
+      <VImg height="350" class="mb-5" src="@/assets/logo.svg" /> 
 
       <div class="text-body-2 font-weight-light mb-n1">Welcome to</div>
 
@@ -10,7 +10,7 @@
       <div class="text-body-1 font-weight-light mt-1">Internet of Things</div>
  
 
-      <div class="py-14" />
+      <div class="py-14"/>
 
       <VRow class="d-flex align-center justify-center">
         <VCol cols="auto">
