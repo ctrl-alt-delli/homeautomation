@@ -185,5 +185,5 @@ float checkReserve()
 float detpercentage()
 {
   float waterheight = checkWaterheight();
-  return (waterheight / maxheight) * 100;
-}
+  return (waterheight / maxheight) * 100;}
+
