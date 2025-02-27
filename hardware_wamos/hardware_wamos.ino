@@ -31,10 +31,10 @@
 #define idNumber    "620157584"       // REPLACE WITH YOUR ID NUMBER 
 
 // WIFI CREDENTIALS
-#define SSID        "MonaConnect"      // "REPLACE WITH YOUR WIFI's SSID"   
-#define password    ""  // "REPLACE WITH YOUR WiFi's PASSWORD" 
-//#define SSID        "Digicel_WiFi_eSEb"      // "REPLACE WITH YOUR WIFI's SSID"   
-//#define password    "WYPx3kCk"  // "REPLACE WITH YOUR WiFi's PASSWORD" 
+//#define SSID        "MonaConnect"      // "REPLACE WITH YOUR WIFI's SSID"   
+//#define password    ""  // "REPLACE WITH YOUR WiFi's PASSWORD" 
+#define SSID        "Digicel_WiFi_eSEb"      // "REPLACE WITH YOUR WIFI's SSID"   
+#define password    "WYPx3kCk"  // "REPLACE WITH YOUR WiFi's PASSWORD" 
 
 #define stay        100
  
@@ -187,4 +187,3 @@ float detpercentage()
   float waterheight = checkWaterheight();
   return (waterheight / maxheight) * 100;
 }
-
